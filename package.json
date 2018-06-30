@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "babel": "babel --presets es2015 js/main.js -o build/main.bundle.js",
+    "babel": "babel --presets es2015 js/main.js -w -o build/main.bundle.js",
     "start": "http-server -p 9000"
-},
+  },
   "author": "Edgar Mlowe",
   "license": "MIT",
   "devDependencies": {
@@ -14,5 +14,10 @@
     "babel-core": "^6.26.3",
     "babel-preset-es2015": "^6.24.1",
     "http-server": "^0.11.1"
+  },
+  "dependencies": {
+    "es6-promise": "^4.2.4",
+    "fetch-polyfill": "^0.8.2",
+    "install": "^0.12.1"
   }
 }
