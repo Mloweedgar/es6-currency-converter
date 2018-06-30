@@ -1,17 +1,25 @@
+self.addEventListener('install', function(event) {
+    event.waitUntil(
+        caches.open('currency-conveter-static-v1')
+        .then(function(cache) {
+            return cache.addAll(
+                [
+                    '/',
+                    'build/main.bundle.js',
+                    'css/main.css',
+                    'https://free.currencyconverterapi.com/api/v5/currencies'
+                ]
+            );
+        })
+    );
+});
+
 self.addEventListener('fetch', function(event) {
-   if ( event.request.url.endsWith('currencies')) {
     event.respondWith(
-        fetch(event.request)
+        caches.match(event.request)
         .then(function(response) {
-            if (response.status == 404){
-                return new Response('Whoops, not found');
-            }
-            return response;
-            
+            if (response) return response;
+            return fetch(event.request);
         })
-        .catch(function() {
-            return new Response('Uh oh, that totally failed');
-        })
-    )
-   }
+    );
 });
