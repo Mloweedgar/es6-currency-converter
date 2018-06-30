@@ -37,8 +37,8 @@ const onConvert = () =>{
 const registerSw = () => {
     if(!navigator.serviceWorker) return;
     navigator.serviceWorker.register('./sw.js')
-    .then(registration => console.log('Service worker registered', registration))
-    .catch(err => console.log('Failed', err));
+    .then(reg => reg)
+    .catch(err => err);
 }
 
 registerSw();

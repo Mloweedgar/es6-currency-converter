@@ -44,10 +44,10 @@ var onConvert = function onConvert() {
 
 var registerSw = function registerSw() {
     if (!navigator.serviceWorker) return;
-    navigator.serviceWorker.register('./sw.js').then(function (registration) {
-        return console.log('Service worker registered', registration);
+    navigator.serviceWorker.register('./sw.js').then(function (reg) {
+        return reg;
     }).catch(function (err) {
-        return console.log('Failed', err);
+        return err;
     });
 };
 
