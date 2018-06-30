@@ -2,8 +2,8 @@ const getCurrency = () =>fetch('https://free.currencyconverterapi.com/api/v5/cur
 .then(res => res.json())
 .then(myJson => myJson.results)
 .then(data => {
-    initilizeCurrencyList(data, 'from_currency', 'TZS');
-    initilizeCurrencyList(data, 'to_currency', 'USD');
+    initilizeCurrencyList(data, 'from_currency', 'USD');
+    initilizeCurrencyList(data, 'to_currency', 'TZS');
 });
 
 const initilizeCurrencyList = (currency, selectId, selectedCurrency) => {
@@ -22,8 +22,6 @@ const convertCurrency = (rate, rateString) => {
     let inputMoney = document.getElementById('input_money').value;
     let outPutMoney = inputMoney * val;
     document.getElementById('output_money').value = outPutMoney;
-    console.log(outPutMoney);
-
 };
 
 const onConvert = () =>{
@@ -36,5 +34,12 @@ const onConvert = () =>{
     .then(data => convertCurrency(data, rateString));   
 };
 
+const registerSw = () => {
+    if(!navigator.serviceWorker) return;
+    navigator.serviceWorker.register('./sw.js')
+    .then(registration => console.log('Service worker registered', registration))
+    .catch(err => console.log('Failed', err));
+}
 
+registerSw();
 getCurrency();

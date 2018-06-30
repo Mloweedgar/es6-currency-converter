@@ -6,8 +6,8 @@ var getCurrency = function getCurrency() {
     }).then(function (myJson) {
         return myJson.results;
     }).then(function (data) {
-        initilizeCurrencyList(data, 'from_currency', 'TZS');
-        initilizeCurrencyList(data, 'to_currency', 'USD');
+        initilizeCurrencyList(data, 'from_currency', 'USD');
+        initilizeCurrencyList(data, 'to_currency', 'TZS');
     });
 };
 
@@ -28,7 +28,6 @@ var convertCurrency = function convertCurrency(rate, rateString) {
     var inputMoney = document.getElementById('input_money').value;
     var outPutMoney = inputMoney * val;
     document.getElementById('output_money').value = outPutMoney;
-    console.log(outPutMoney);
 };
 
 var onConvert = function onConvert() {
@@ -43,4 +42,14 @@ var onConvert = function onConvert() {
     });
 };
 
+var registerSw = function registerSw() {
+    if (!navigator.serviceWorker) return;
+    navigator.serviceWorker.register('./sw.js').then(function (registration) {
+        return console.log('Service worker registered', registration);
+    }).catch(function (err) {
+        return console.log('Failed', err);
+    });
+};
+
+registerSw();
 getCurrency();
