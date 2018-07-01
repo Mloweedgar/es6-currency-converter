@@ -1,6 +1,9 @@
+
+var d = new Date();
+var staticCacheNames = 'currency-conveter-static-v' + d.getTime();
 self.addEventListener('install', function(event) {
     event.waitUntil(
-        caches.open('currency-conveter-static-v1')
+        caches.open(staticCacheNames)
         .then(function(cache) {
             return cache.addAll(
                 [
@@ -14,6 +17,21 @@ self.addEventListener('install', function(event) {
     );
 });
 
+self.addEventListener('activate', function(event) {
+    console.log('activate called')
+    event.waitUntil(
+       caches.keys().then( function(cacheNames) {
+           return Promise.all(
+               cacheNames.filter( function(cacheName) {
+                   return cacheName.startsWith('currency-conveter-') && cacheName != staticCacheNames;
+               }).map( function(cacheName) {
+                   return caches.delete(cacheName);
+               })
+           );
+       })
+    );
+})
+ // comm
 self.addEventListener('fetch', function(event) {
     event.respondWith(
         caches.match(event.request)
