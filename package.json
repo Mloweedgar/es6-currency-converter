@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "babel": "babel --presets es2015 js/main.js -w -o build/main.bundle.js",
-    "start": "http-server -p 9000"
+    "babel": "babel --presets es2015 js/main.js -o build/main.bundle.js",
+    "sw": "babel --presets es2015 js/serviceWorker.js -o ./sw.js",
+    "start": "npm run babel && npm run sw && http-server -p 9000"
   },
   "author": "Edgar Mlowe",
   "license": "MIT",
@@ -18,6 +19,7 @@
   "dependencies": {
     "es6-promise": "^4.2.4",
     "fetch-polyfill": "^0.8.2",
+    "idb": "^2.1.3",
     "install": "^0.12.1"
   }
 }

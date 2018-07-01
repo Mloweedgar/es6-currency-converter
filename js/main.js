@@ -1,12 +1,35 @@
-const getCurrency = () =>fetch('https://free.currencyconverterapi.com/api/v5/currencies')
-.then(res => res.json())
-.then(myJson => myJson.results)
-.then(data => {
+self.addEventListener('load', () => {
+    const openDataBase = () => {
+        if (!navigator.serviceWorker) {
+            return Promise.resolve();
+          }
+
+          return idb.open('currency', 1, (upgradeDb) => {
+              let store = upgradeDb.createObjectStore('currency', {
+                  keyPath: 'id'
+              });
+          });
+
+    };
+
+    const dBPromise = openDataBase();
+    const getCurrency = () =>fetch('https://free.currencyconverterapi.com/api/v5/currencies')
+    .then(res => res.json())
+    .then(myJson => myJson.results)
+    .then(data => {
+        dBPromise.then((db) => {
+            if (!db) return;
+            let tx = db.transaction('currency', 'readwrite');
+            let store = tx.objectStore('currency');
+            for (let curr in data) {
+                store.put(data[curr]);
+            }
+        });
     initilizeCurrencyList(data, 'from_currency', 'USD');
     initilizeCurrencyList(data, 'to_currency', 'TZS');
-});
+    });
 
-const initilizeCurrencyList = (currency, selectId, selectedCurrency) => {
+    const initilizeCurrencyList = (currency, selectId, selectedCurrency) => {
     let select = document.getElementById(selectId);
     for (let curr in currency) {
         let option = document.createElement('option');
@@ -15,16 +38,16 @@ const initilizeCurrencyList = (currency, selectId, selectedCurrency) => {
         if(curr == selectedCurrency) option.selected = "selected";
         select.appendChild(option);
     }
-};
+    };
 
-const convertCurrency = (rate, rateString) => {
+    const convertCurrency = (rate, rateString) => {
     let {val} = rate[rateString];
     let inputMoney = document.getElementById('input_money').value;
     let outPutMoney = inputMoney * val;
     document.getElementById('output_money').value = outPutMoney;
-};
+    };
 
-const onConvert = () =>{
+    const onConvert = () =>{
     let from = document.getElementById('from_currency').value;
     let to = document.getElementById('to_currency').value;
     let rateString = `${from}_${to}`;
@@ -32,14 +55,14 @@ const onConvert = () =>{
     fetch(url)
     .then(res => res.json())
     .then(data => convertCurrency(data, rateString));   
-};
+    };
 
-const registerSw = () => {
+    const registerSw = () => {
     if(!navigator.serviceWorker) return;
     navigator.serviceWorker.register('./sw.js')
-    .then(registration => console.log('Service worker registered', registration))
-    .catch(err => console.log('Failed', err));
-}
-
-registerSw();
-getCurrency();
+    .then(reg => reg)
+    .catch(err => err);
+    }
+    registerSw();
+    getCurrency();
+});
