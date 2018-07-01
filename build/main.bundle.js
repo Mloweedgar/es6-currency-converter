@@ -1,55 +1,77 @@
 'use strict';
 
-var getCurrency = function getCurrency() {
-    return fetch('https://free.currencyconverterapi.com/api/v5/currencies').then(function (res) {
-        return res.json();
-    }).then(function (myJson) {
-        return myJson.results;
-    }).then(function (data) {
-        initilizeCurrencyList(data, 'from_currency', 'USD');
-        initilizeCurrencyList(data, 'to_currency', 'TZS');
-    });
-};
+self.addEventListener('load', function () {
+    var openDataBase = function openDataBase() {
+        if (!navigator.serviceWorker) {
+            return Promise.resolve();
+        }
 
-var initilizeCurrencyList = function initilizeCurrencyList(currency, selectId, selectedCurrency) {
-    var select = document.getElementById(selectId);
-    for (var curr in currency) {
-        var option = document.createElement('option');
-        option.value = curr;
-        option.text = curr;
-        if (curr == selectedCurrency) option.selected = "selected";
-        select.appendChild(option);
-    }
-};
+        return idb.open('currency', 1, function (upgradeDb) {
+            var store = upgradeDb.createObjectStore('currency', {
+                keyPath: 'id'
+            });
+        });
+    };
 
-var convertCurrency = function convertCurrency(rate, rateString) {
-    var val = rate[rateString].val;
+    var dBPromise = openDataBase();
+    var getCurrency = function getCurrency() {
+        return fetch('https://free.currencyconverterapi.com/api/v5/currencies').then(function (res) {
+            return res.json();
+        }).then(function (myJson) {
+            return myJson.results;
+        }).then(function (data) {
+            dBPromise.then(function (db) {
+                if (!db) return;
+                var tx = db.transaction('currency', 'readwrite');
+                var store = tx.objectStore('currency');
+                for (var curr in data) {
+                    store.put(data[curr]);
+                }
+            });
+            initilizeCurrencyList(data, 'from_currency', 'USD');
+            initilizeCurrencyList(data, 'to_currency', 'TZS');
+        });
+    };
 
-    var inputMoney = document.getElementById('input_money').value;
-    var outPutMoney = inputMoney * val;
-    document.getElementById('output_money').value = outPutMoney;
-};
+    var initilizeCurrencyList = function initilizeCurrencyList(currency, selectId, selectedCurrency) {
+        var select = document.getElementById(selectId);
+        for (var curr in currency) {
+            var option = document.createElement('option');
+            option.value = curr;
+            option.text = curr;
+            if (curr == selectedCurrency) option.selected = "selected";
+            select.appendChild(option);
+        }
+    };
 
-var onConvert = function onConvert() {
-    var from = document.getElementById('from_currency').value;
-    var to = document.getElementById('to_currency').value;
-    var rateString = from + '_' + to;
-    var url = 'https://free.currencyconverterapi.com/api/v5/convert?q=' + rateString + '&compact=y';
-    fetch(url).then(function (res) {
-        return res.json();
-    }).then(function (data) {
-        return convertCurrency(data, rateString);
-    });
-};
+    var convertCurrency = function convertCurrency(rate, rateString) {
+        var val = rate[rateString].val;
 
-var registerSw = function registerSw() {
-    if (!navigator.serviceWorker) return;
-    navigator.serviceWorker.register('./sw.js').then(function (reg) {
-        return reg;
-    }).catch(function (err) {
-        return err;
-    });
-};
+        var inputMoney = document.getElementById('input_money').value;
+        var outPutMoney = inputMoney * val;
+        document.getElementById('output_money').value = outPutMoney;
+    };
 
-registerSw();
-getCurrency();
+    var onConvert = function onConvert() {
+        var from = document.getElementById('from_currency').value;
+        var to = document.getElementById('to_currency').value;
+        var rateString = from + '_' + to;
+        var url = 'https://free.currencyconverterapi.com/api/v5/convert?q=' + rateString + '&compact=y';
+        fetch(url).then(function (res) {
+            return res.json();
+        }).then(function (data) {
+            return convertCurrency(data, rateString);
+        });
+    };
+
+    var registerSw = function registerSw() {
+        if (!navigator.serviceWorker) return;
+        navigator.serviceWorker.register('./sw.js').then(function (reg) {
+            return reg;
+        }).catch(function (err) {
+            return err;
+        });
+    };
+    registerSw();
+    getCurrency();
+});
