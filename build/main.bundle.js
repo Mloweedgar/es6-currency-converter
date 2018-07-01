@@ -1,6 +1,7 @@
 'use strict';
 
 self.addEventListener('load', function () {
+    var isFirstTime = true;
     var openDataBase = function openDataBase() {
         if (!navigator.serviceWorker) {
             return Promise.resolve();
@@ -30,15 +31,30 @@ self.addEventListener('load', function () {
             });
             initilizeCurrencyList(data, 'from_currency', 'USD');
             initilizeCurrencyList(data, 'to_currency', 'TZS');
+        }).catch(function () {
+            showCachedCurrency();
+        });
+    };
+
+    var showCachedCurrency = function showCachedCurrency() {
+        dBPromise.then(function (db) {
+            if (!db) {
+                var storedObjects = db.transaction('currency').objectStore('currency');
+                return storedObjects.getAll().then(function (storedCurrency) {
+                    initilizeCurrencyList(storedCurrency, 'from_currency', 'USD');
+                    initilizeCurrencyList(storedCurrency, 'to_currency', 'TZS');
+                });
+            }
         });
     };
 
     var initilizeCurrencyList = function initilizeCurrencyList(currency, selectId, selectedCurrency) {
+
         var select = document.getElementById(selectId);
         for (var curr in currency) {
             var option = document.createElement('option');
-            option.value = curr;
-            option.text = curr;
+            option.value = curr.id ? curr.id : curr;
+            option.text = curr.id ? curr.id : curr;
             if (curr == selectedCurrency) option.selected = "selected";
             select.appendChild(option);
         }
@@ -74,4 +90,5 @@ self.addEventListener('load', function () {
     };
     registerSw();
     getCurrency();
+    showCachedCurrency();
 });

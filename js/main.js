@@ -1,4 +1,5 @@
 self.addEventListener('load', () => {
+    const isFirstTime = true;
     const openDataBase = () => {
         if (!navigator.serviceWorker) {
             return Promise.resolve();
@@ -25,16 +26,37 @@ self.addEventListener('load', () => {
                 store.put(data[curr]);
             }
         });
-    initilizeCurrencyList(data, 'from_currency', 'USD');
-    initilizeCurrencyList(data, 'to_currency', 'TZS');
+        initilizeCurrencyList(data, 'from_currency', 'USD');
+        initilizeCurrencyList(data, 'to_currency', 'TZS');
+
+       
+        
+    }).catch(() => {
+        showCachedCurrency();
     });
 
+    const showCachedCurrency = () => {
+        dBPromise.then((db) => {
+            if(!db) {
+                let storedObjects = db.transaction('currency')
+                .objectStore('currency')
+                return storedObjects.getAll()
+                .then((storedCurrency) => {
+                    initilizeCurrencyList(storedCurrency, 'from_currency', 'USD');
+                    initilizeCurrencyList(storedCurrency, 'to_currency', 'TZS');
+                });
+            }
+          
+        });
+    };
+
     const initilizeCurrencyList = (currency, selectId, selectedCurrency) => {
+
     let select = document.getElementById(selectId);
     for (let curr in currency) {
         let option = document.createElement('option');
-        option.value = curr;
-        option.text = curr;
+        option.value = curr.id ? curr.id : curr;
+        option.text = curr.id ? curr.id : curr;
         if(curr == selectedCurrency) option.selected = "selected";
         select.appendChild(option);
     }
@@ -65,4 +87,5 @@ self.addEventListener('load', () => {
     }
     registerSw();
     getCurrency();
+    showCachedCurrency();
 });
